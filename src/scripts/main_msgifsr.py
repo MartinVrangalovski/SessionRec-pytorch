@@ -1,5 +1,6 @@
 import argparse
 import os
+from pickle import TRUE
 import numpy as np
 import torch
 import random
@@ -36,17 +37,17 @@ parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFo
 parser.add_argument(
     '--dataset-dir', default='../datasets/sample', help='the dataset directory'
 )
-parser.add_argument('--embedding-dim', type=int, default=256, help='the embedding size')
+parser.add_argument('--embedding-dim', type=int, default=128, help='the embedding size')
 parser.add_argument('--num-layers', type=int, default=1, help='the number of layers')
 parser.add_argument(
     '--feat-drop', type=float, default=0.1, help='the dropout ratio for features'
 )
-parser.add_argument('--lr', type=float, default=1e-3, help='the learning rate')
+parser.add_argument('--lr', type=float, default=1e-2, help='the learning rate')
 parser.add_argument(
-    '--batch-size', type=int, default=512, help='the batch size for training'
+    '--batch-size', type=int, default=256, help='the batch size for training'
 )
 parser.add_argument(
-    '--epochs', type=int, default=30, help='the number of training epochs'
+    '--epochs', type=int, default=10, help='the number of training epochs'
 )
 parser.add_argument(
     '--weight-decay',
@@ -87,7 +88,7 @@ parser.add_argument(
 parser.add_argument(
     '--reducer',
     type=str,
-    default='mean',
+    default='concat',
     help='method for reducer',
 )
 parser.add_argument(
@@ -110,7 +111,7 @@ parser.add_argument(
 )
 
 args = parser.parse_args()
-print(args)
+print("argumenti",args)
 
 
 from pathlib import Path
@@ -165,7 +166,7 @@ test_loader = DataLoader(
     pin_memory=True
 )
 
-model = MSGIFSR(num_items, args.dataset_dir, args.embedding_dim, args.num_layers, dropout=args.feat_drop, reducer=args.reducer, order=args.order, norm=args.norm, extra=args.extra, fusion=args.fusion, device=device)
+model = MSGIFSR(num_items, args.dataset_dir, args.embedding_dim, num_layers=1, dropout=args.feat_drop, reducer=args.reducer, order=args.order, norm=args.norm, extra=args.extra, fusion=args.fusion, device=device)
 
 model = model.to(device)
 

@@ -46,7 +46,7 @@ class SemanticExpander(nn.Module):
       
 class MSHGNN(nn.Module):
     
-    def __init__(self, input_dim, output_dim, dropout=0.0, activation=None, order=1, reducer='mean'):
+    def __init__(self, input_dim, output_dim, dropout=0.0, activation=None, order=1):
         super().__init__()
      
         self.dropout = nn.Dropout(dropout)
@@ -62,6 +62,13 @@ class MSHGNN(nn.Module):
         conv2_modules = {'intra'+str(i+1) : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True) for i in range(self.order)}
         conv2_modules.update({'inter'     : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True)})
         self.conv2 = dglnn.HeteroGraphConv(conv2_modules, aggregate='sum')
+
+        conv3_modules = {'intra'+str(i+1) : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True) for i in range(self.order)}
+        conv3_modules.update({'inter'     : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True)})
+        self.conv3 = dglnn.HeteroGraphConv(conv3_modules, aggregate='sum')
+        conv4_modules = {'intra'+str(i+1) : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True) for i in range(self.order)}
+        conv4_modules.update({'inter'     : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True)})
+        self.conv4 = dglnn.HeteroGraphConv(conv4_modules, aggregate='sum')
         
         self.lint = nn.Linear(output_dim, 1, bias=False)
         self.linq = nn.Linear(output_dim, output_dim)
@@ -73,6 +80,10 @@ class MSHGNN(nn.Module):
                 
             h1 = self.conv1(g, (feat, feat))
             h2 = self.conv2(g.reverse(copy_edata=True), (feat, feat))
+            h3 = self.conv3(g, (feat, feat))
+            h4 = self.conv4(g.reverse(copy_edata=True), (feat, feat))
+
+
             h = {}
             for i in range(self.order):
                 hl, hr = th.zeros(1, self.output_dim).to(self.lint.weight.device), th.zeros(1, self.output_dim).to(self.lint.weight.device)
@@ -80,8 +91,12 @@ class MSHGNN(nn.Module):
                     hl = h1['s'+str(i+1)]
                 if 's'+str(i+1) in h2:
                     hr = h2['s'+str(i+1)]
+                if 's'+str(i+1) in h3:
+                    hl = h3['s'+str(i+1)]   
+                if 's'+str(i+1) in h4:
+                    hr = h4['s'+str(i+1)]
                 h['s'+str(i+1)] = hl + hr
-                if len(h['s'+str(i+1)].shape) > 2:
+                if len(h['s'+str(i+1)].shape) > 2:# zosto e ova 2?
                     h['s'+str(i+1)] = h['s'+str(i+1)].max(1)[0]
                 h_mean = F.segment.segment_reduce(g.batch_num_nodes('s'+str(i+1)), feat['s'+str(i+1)], 'mean')
                 h_mean = dgl.broadcast_nodes(g, h_mean, ntype='s'+str(i+1)) # adding mean maskes better
@@ -158,8 +173,8 @@ class MSGIFSR(nn.Module):
     
     def __init__(self, num_items, datasets, embedding_dim, num_layers, dropout=0.0, reducer='mean', order=3, norm=True, extra=True, fusion=True, device=th.device('cpu')):
         super().__init__()
-        
-        self.embeddings = nn.Embedding(num_items, embedding_dim, max_norm=1)
+        #normiranje e klucno
+        self.embeddings = nn.Embedding(num_items, embedding_dim, max_norm=2)
  
         self.num_items = num_items
         self.register_buffer('indices', th.arange(num_items, dtype=th.long))
@@ -173,7 +188,9 @@ class MSGIFSR(nn.Module):
         self.beta     = nn.Parameter(th.Tensor(1))
         self.norm     = norm
         self.expander = SemanticExpander(input_dim, reducer, order)
-        
+        print("num_layers",num_layers)
+        print("self.num_layers",self.num_layers)
+
         self.device = device
         for i in range(num_layers):
             layer = MSHGNN(
