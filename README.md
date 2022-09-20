@@ -1,3 +1,4 @@
+Овој код е истражување на веќе посточкиот модел, од него се отстранети останатите модели и е извшена измена. Моментално се поставени параметрите кои дадоа најдобри резултати при тестирање на податочното множество sample и на податочното множество Gowalla. Исто така е извршена промена во архитектурата, задржана е таа што даде подобри резултати.
 # Session-based Recommendation Library
 
 ## MSGIFSR
@@ -31,6 +32,7 @@ then
 
 ```
 bash start.sh $MODEL_NAME $DATASET_NAME
+the dataset also can be passed from the dataset.py by path
 ```
 ## Experiment Results
 
