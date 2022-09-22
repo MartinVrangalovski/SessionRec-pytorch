@@ -31,7 +31,7 @@ conda env create -f environment.yaml
 then 
 
 ```
-bash start.sh $MODEL_NAME $DATASET_NAME
+bash start.sh MSGIFSR $DATASET_NAME
 the dataset also can be passed from the dataset.py by path
 ```
 ## Experiment Results
