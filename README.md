@@ -5,10 +5,6 @@
 
 This is the official implementation of **Learning Multi-granularity User Intent Unit for Session-based Recommendation** from WSDM 2022 and some other session-based recommendation models. We use [DGL](https://www.dgl.ai/) library and mainly follow the implementation of [lessr](https://github.com/twchen/lessr). (Tianwen Chen, Raymond Wong, KDD 2020)
 
-## Baselines
-
-We also reimplemented several current session-based recommendation baselines including SRGNN, NISER+ and tuned them through our best effert. They are summarized as follows. Leaderboards are comming soon.
-
 ## Dataset
 
 Download and extract the following datasets and put the files in the dataset folder named under datasets/$DATASETNAME
