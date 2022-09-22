@@ -20,9 +20,13 @@ def read_sessions(filepath):
 
 
 def read_dataset(dataset_dir):
-    train_sessions = read_sessions('/home/martin/Desktop/project/session-rec/SessionRec-pytorch/datasets/sample/train.txt')
-    test_sessions = read_sessions('/home/martin/Desktop/project/session-rec/SessionRec-pytorch/datasets/sample/test.txt')
-    with open('/home/martin/Desktop/project/session-rec/SessionRec-pytorch/datasets/sample/num_items.txt', 'r') as f:
+    # train_sessions = read_sessions(dataset_dir / 'train.txt')
+    # test_sessions = read_sessions(dataset_dir / 'test.txt')
+    # with open(dataset_dir / 'num_items.txt', 'r') as f:
+    #        num_items = int(f.readline())
+    train_sessions = read_sessions('/home/martin/Desktop/SessionRec-pytorch/datasets/sample/train.txt')
+    test_sessions = read_sessions('/home/martin/Desktop/SessionRec-pytorch/datasets/sample/test.txt')
+    with open('/home/martin/Desktop/SessionRec-pytorch/datasets/sample/num_items.txt', 'r') as f:
         num_items = int(f.readline())
     return train_sessions, test_sessions, num_items
 

@@ -41,7 +41,6 @@ class SemanticExpander(nn.Module):
             invar =  self.Ws[feat.size(1)-2](feat.view(feat.size(0), -1))
         var = self.GRUs[feat.size(1)-2](feat)[1].permute(1, 0, 2).squeeze()
 
-        # return invar + var
         return 0.5 * invar + 0.5 * var
       
 class MSHGNN(nn.Module):
@@ -66,6 +65,7 @@ class MSHGNN(nn.Module):
         conv3_modules = {'intra'+str(i+1) : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True) for i in range(self.order)}
         conv3_modules.update({'inter'     : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True)})
         self.conv3 = dglnn.HeteroGraphConv(conv3_modules, aggregate='sum')
+       
         conv4_modules = {'intra'+str(i+1) : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True) for i in range(self.order)}
         conv4_modules.update({'inter'     : GATConv(input_dim, output_dim, 8, dropout, dropout, residual=True)})
         self.conv4 = dglnn.HeteroGraphConv(conv4_modules, aggregate='sum')
@@ -96,11 +96,10 @@ class MSHGNN(nn.Module):
                 if 's'+str(i+1) in h4:
                     hr = h4['s'+str(i+1)]
                 h['s'+str(i+1)] = hl + hr
-                if len(h['s'+str(i+1)].shape) > 2:# zosto e ova 2?
+                if len(h['s'+str(i+1)].shape) > 2:
                     h['s'+str(i+1)] = h['s'+str(i+1)].max(1)[0]
                 h_mean = F.segment.segment_reduce(g.batch_num_nodes('s'+str(i+1)), feat['s'+str(i+1)], 'mean')
                 h_mean = dgl.broadcast_nodes(g, h_mean, ntype='s'+str(i+1)) # adding mean maskes better
-                # print(h['s'+str(i+1)].shape, h_mean.shape)
                 h['s'+str(i+1)] =  h_mean + h['s'+str(i+1)]
                 
         return h
@@ -173,7 +172,6 @@ class MSGIFSR(nn.Module):
     
     def __init__(self, num_items, datasets, embedding_dim, num_layers, dropout=0.0, reducer='mean', order=3, norm=True, extra=True, fusion=True, device=th.device('cpu')):
         super().__init__()
-        #normiranje e klucno
         self.embeddings = nn.Embedding(num_items, embedding_dim, max_norm=2)
  
         self.num_items = num_items
@@ -224,12 +222,10 @@ class MSGIFSR(nn.Module):
         self.input_dim = input_dim
         self.embedding_dim =embedding_dim
  
-        # self.sr_trans1 = nn.Linear(embedding_dim, embedding_dim)
-        # self.sr_trans2 = nn.Linear(embedding_dim, embedding_dim)
+
         self.reset_parameters()
         self.alpha.data = th.zeros(self.order)
         self.alpha.data[0] = th.tensor(1.0)
-        # self.beta.data = th.zeros(1)
         self.beta.data = th.tensor(1.0)
         self.fusion = fusion
         self.extra = extra
@@ -314,14 +310,14 @@ class MSGIFSR(nn.Module):
                 score_ex = score_ex.masked_fill(score_ex != score_ex, 0)
             assert not th.isnan(score).any()
             assert not th.isnan(score_ex).any()
-            # print(score.shape, score_ex.shape)
+            #print(score.shape, score_ex.shape)
             if self.order == 1:
                 phi = phi.squeeze(1)
                 score = (th.cat((score.unsqueeze(1), score_ex.unsqueeze(1)), dim=1) * phi).sum(1)
             else:
                 score = (th.cat((score.unsqueeze(2), score_ex.unsqueeze(2)), dim=2) * phi).sum(2)
         else:
-            # print("no extra ****************")
+            #print("no extra ****************")
             logits = sr.squeeze() @ target.t()
             score  = th.softmax(12 * logits, dim=-1)
         

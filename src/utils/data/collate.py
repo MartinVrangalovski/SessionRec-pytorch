@@ -3,7 +3,6 @@ import numpy as np
 import torch as th
 import dgl
 import pickle
-import numba
 from numba import jit
 
 
@@ -259,8 +258,7 @@ if __name__ == '__main__':
     
     seq = [3, 1, 3, 6, 2, 5, 1, 2, 4, 1, 2] # 2, 0, 2, 5, 1, 4, 0, 1, 3, 0, 1 
     seq0 = [250, 250, 250, 250, 3, 1, 2, 4, 1]
-    # g1 = seq_to_ccs_graph(seq, order=4)
-    # g2 = seq_to_ccs_graph(seq, order=2)
+
     collate_fn = collate_fn_factory_ccs(seq_to_ccs_graph, order=2)
     seqs = [[seq, 1], [seq0, 2]]
     print(collate_fn(seqs)[0][0].batch_num_nodes('s2'))
